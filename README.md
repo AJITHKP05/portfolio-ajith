@@ -6,3 +6,4 @@ Senior Mobile - Flutter Developer
 ajithkp1537@gmail.com 
 
 
+/// flutter build web && firebase deploy --only hosting
