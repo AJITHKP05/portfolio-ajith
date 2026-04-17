@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import '../constants/colors.dart';
 import '../constants/data.dart';
@@ -76,6 +77,45 @@ class AboutSection extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 40),
+              FadeInUp(
+                duration: const Duration(milliseconds: 1200),
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () async {
+                      final Uri uri = Uri.parse(PortfolioData.resumeAsset);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else {
+                        await launchUrl(Uri.parse("assets/${PortfolioData.resumeAsset}"));
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.download, color: AppColors.primary, size: 20),
+                          SizedBox(width: 10),
+                          Text(
+                            "Download CV",
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 16,
+                              fontFamily: 'FiraCode',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

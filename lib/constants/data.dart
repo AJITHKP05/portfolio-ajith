@@ -7,6 +7,7 @@ class PortfolioData {
   static const String email = "Ajithkp1537@gmail.com";
   static const String phone = "+91 9496089097";
   static const String linkedin = "https://linkedin.com/in/ajith-kp";
+  static const String resumeAsset = "assets/Resume_AJITH.pdf";
 
   static const List<String> skills = [
     "Flutter / Dart",
@@ -26,7 +27,7 @@ class PortfolioData {
     {
       "role": "Senior Software Developer",
       "company": "Mphasis",
-      "duration": "May 2024 - Present",
+      "duration": "May 2024 - April 2026",
       "projects": [
         {
           "name": "Bank Loan Approval System",

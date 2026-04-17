@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import '../constants/colors.dart';
 import '../constants/data.dart';
@@ -72,26 +73,61 @@ class HeroSection extends StatelessWidget {
               const SizedBox(height: 50),
               FadeInUp(
                 duration: const Duration(milliseconds: 1600),
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: onCheckWork,
-                    child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.primary),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      "Check out my work!",
-                      style: GoogleFonts.firaCode(
-                        color: AppColors.primary,
-                        fontSize: 16,
+                child: Wrap(
+                  spacing: 20,
+                  runSpacing: 20,
+                  children: [
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: onCheckWork,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.primary),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            "Check out my work!",
+                            style: GoogleFonts.firaCode(
+                              color: AppColors.primary,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () async {
+                          final Uri uri = Uri.parse(PortfolioData.resumeAsset);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri);
+                          } else {
+                            // Fallback for some web environments if the relative path doesn't work directly with launchUrl
+                            await launchUrl(Uri.parse("assets/${PortfolioData.resumeAsset}"));
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            border: Border.all(color: AppColors.primary),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            "Download CV",
+                            style: GoogleFonts.firaCode(
+                              color: AppColors.primary,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
               ),
             ],
           ),
