@@ -1,186 +1,332 @@
 import 'package:flutter/material.dart';
-import 'package:animate_do/animate_do.dart';
-import 'package:responsive_builder/responsive_builder.dart';
+
 import '../constants/colors.dart';
 import '../constants/data.dart';
+import 'common/reveal.dart';
+import 'common/ui.dart';
 
-class ExperienceSection extends StatefulWidget {
+class ExperienceSection extends StatelessWidget {
   const ExperienceSection({super.key});
 
   @override
-  State<ExperienceSection> createState() => _ExperienceSectionState();
-}
-
-class _ExperienceSectionState extends State<ExperienceSection> {
-  int _selectedIndex = 0;
-
-  @override
   Widget build(BuildContext context) {
-    return ResponsiveBuilder(
-      builder: (context, sizingInformation) {
-        bool isDesktop = sizingInformation.isDesktop;
-        return FadeInUp(
-          duration: const Duration(milliseconds: 1000),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    "Where I've Worked",
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: isDesktop ? 32 : 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Container(
-                      height: 1,
-                      color: AppColors.surface,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 40),
-              isDesktop
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTabBar(),
-                        const SizedBox(width: 40),
-                        Expanded(child: _buildContent()),
-                      ],
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: PortfolioData.experience.asMap().entries.map((entry) {
-                              return _buildTabButton(entry.key, entry.value['company'] as String, isHorizontal: true);
-                            }).toList(),
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        _buildContent(),
-                      ],
-                    ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      width: 200,
-      decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(color: AppColors.surface, width: 2),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: PortfolioData.experience.asMap().entries.map((entry) {
-          int index = entry.key;
-          String company = entry.value['company'] as String;
-          return _buildTabButton(index, company, isHorizontal: false);
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildTabButton(int index, String company, {required bool isHorizontal}) {
-    bool isSelected = _selectedIndex == index;
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      hoverColor: AppColors.surface.withOpacity(0.5),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-        decoration: BoxDecoration(
-          border: isHorizontal
-              ? Border(bottom: BorderSide(color: isSelected ? AppColors.primary : Colors.transparent, width: 2))
-              : Border(left: BorderSide(color: isSelected ? AppColors.primary : Colors.transparent, width: 2)),
-          color: isSelected ? AppColors.surface.withOpacity(0.5) : Colors.transparent,
-        ),
-        child: Text(
-          company,
-          style: TextStyle(
-            color: isSelected ? AppColors.primary : AppColors.textSecondary,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent() {
-    final exp = PortfolioData.experience[_selectedIndex];
-    final projects = exp['projects'] as List<dynamic>;
-
-    return FadeIn(
-      key: ValueKey(_selectedIndex),
-      duration: const Duration(milliseconds: 500),
+    return const ContentWidth(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          RichText(
-            text: TextSpan(
-              style: const TextStyle(fontSize: 22, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-              children: [
-                TextSpan(text: exp['role'] as String),
-                TextSpan(
-                  text: ' @ ${exp['company']}',
-                  style: const TextStyle(color: AppColors.primary),
+          SectionHeader(
+            eyebrow: 'Experience',
+            title: 'Where I\'ve made an impact.',
+            subtitle:
+                'Six-plus years across enterprise Fintech, EdTech and E-commerce teams, plus independent freelance work — growing from shipping features to leading full-cycle delivery.',
+          ),
+          _Timeline(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Vertical timeline whose gradient line "draws" itself as you scroll.
+class _Timeline extends StatefulWidget {
+  const _Timeline();
+
+  @override
+  State<_Timeline> createState() => _TimelineState();
+}
+
+class _TimelineState extends State<_Timeline> {
+  ScrollPosition? _position;
+  double _progress = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _position?.removeListener(_update);
+    _position = Scrollable.maybeOf(context)?.position;
+    _position?.addListener(_update);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _update());
+  }
+
+  void _update() {
+    if (!mounted) return;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return;
+    final top = box.localToGlobal(Offset.zero).dy;
+    final anchor = MediaQuery.sizeOf(context).height * 0.6;
+    final p = ((anchor - top) / box.size.height).clamp(0.0, 1.0);
+    if ((p - _progress).abs() > 0.002) setState(() => _progress = p);
+  }
+
+  @override
+  void dispose() {
+    _position?.removeListener(_update);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final desktop = context.isDesktop;
+    final items = PortfolioData.experience;
+    const dotColumn = 56.0;
+
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Align(
+            alignment: desktop ? Alignment.topCenter : Alignment.topLeft,
+            child: SizedBox(
+              width: dotColumn,
+              child: Center(
+                child: Container(
+                  width: 2,
+                  color: AppColors.border,
+                  alignment: Alignment.topCenter,
+                  child: FractionallySizedBox(
+                    heightFactor: _progress,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.primary,
+                            AppColors.violet,
+                            AppColors.secondary,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            exp['duration'] as String,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 16, fontFamily: 'FiraCode'),
+        ),
+        Column(
+          children: [
+            for (var i = 0; i < items.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 40),
+                child: _TimelineRow(
+                  exp: items[i],
+                  index: i,
+                  desktop: desktop,
+                  dotColumn: dotColumn,
+                  lit: _progress >= (i + 0.2) / items.length,
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TimelineRow extends StatelessWidget {
+  final Experience exp;
+  final int index;
+  final bool desktop;
+  final double dotColumn;
+  final bool lit;
+
+  const _TimelineRow({
+    required this.exp,
+    required this.index,
+    required this.desktop,
+    required this.dotColumn,
+    required this.lit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final leftSide = index.isEven;
+    final dot = SizedBox(
+      width: dotColumn,
+      child: Center(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 400),
+          margin: const EdgeInsets.only(top: 28),
+          width: lit ? 20 : 14,
+          height: lit ? 20 : 14,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: lit ? exp.accent : AppColors.background,
+            border: Border.all(color: exp.accent, width: 3),
+            boxShadow: [
+              if (lit)
+                BoxShadow(
+                  color: exp.accent.withValues(alpha: 0.7),
+                  blurRadius: 18,
+                ),
+            ],
           ),
-          const SizedBox(height: 25),
-          ...projects.map((project) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 20),
+        ),
+      ),
+    );
+
+    final card = Reveal(
+      offset: Offset(desktop ? (leftSide ? -60 : 60) : 40, 0),
+      child: _ExperienceCard(exp: exp),
+    );
+
+    if (!desktop) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [dot, const SizedBox(width: 8), Expanded(child: card)],
+      );
+    }
+
+    final period = Reveal(
+      offset: Offset(leftSide ? 60 : -60, 0),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 22),
+        child: Column(
+          crossAxisAlignment:
+              leftSide ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+          children: [
+            Text(exp.duration, style: monoStyle(15, color: exp.accent)),
+            const SizedBox(height: 6),
+            Text(
+              exp.summary,
+              textAlign: leftSide ? TextAlign.left : TextAlign.right,
+              style: const TextStyle(color: AppColors.textMuted, height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: leftSide ? card : period),
+        dot,
+        Expanded(child: leftSide ? period : card),
+      ],
+    );
+  }
+}
+
+class _ExperienceCard extends StatelessWidget {
+  final Experience exp;
+  const _ExperienceCard({required this.exp});
+
+  @override
+  Widget build(BuildContext context) {
+    final desktop = context.isDesktop;
+    return HoverCard(
+      glow: exp.accent,
+      tilt: 0.03,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    colors: [exp.accent, exp.accent.withValues(alpha: 0.5)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Text(exp.initials,
+                    style: headingStyle(18, color: Colors.white)),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(exp.role, style: headingStyle(20)),
+                    const SizedBox(height: 4),
+                    Text(
+                      exp.company,
+                      style: TextStyle(
+                        color: exp.accent,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (!desktop) ...[
+            const SizedBox(height: 12),
+            Text(exp.duration, style: monoStyle(13, color: AppColors.textMuted)),
+          ],
+          const SizedBox(height: 18),
+          for (final h in exp.highlights)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 5),
-                    child: Icon(Icons.arrow_right, color: AppColors.primary, size: 20),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Icon(Icons.bolt_rounded, size: 16, color: exp.accent),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          project['name'] as String,
-                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          project['description'] as String,
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 16, height: 1.5),
-                        ),
-                      ],
+                    child: Text(
+                      h,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 15,
+                        height: 1.6,
+                      ),
                     ),
                   ),
                 ],
               ),
-            );
-          }),
+            ),
+          if (exp.projects.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'KEY PROJECTS',
+              style: monoStyle(11, color: AppColors.textMuted)
+                  .copyWith(letterSpacing: 2),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final p in exp.projects)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white.withValues(alpha: 0.04),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Text(
+                      p,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 18),
+          ],
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [for (final t in exp.tags) TagChip(t, color: exp.accent)],
+          ),
         ],
       ),
     );

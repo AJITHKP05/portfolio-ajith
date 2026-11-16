@@ -13,14 +13,22 @@ class PortfolioApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Ajith KP | Portfolio',
+      title: 'Ajith KP · Senior Flutter & Mobile Engineer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.background,
         primaryColor: AppColors.primary,
+        colorScheme: const ColorScheme.dark(
+          primary: AppColors.primary,
+          secondary: AppColors.violet,
+          surface: AppColors.surface,
+        ),
+        textSelectionTheme: TextSelectionThemeData(
+          selectionColor: AppColors.violet.withValues(alpha: 0.4),
+        ),
         textTheme: GoogleFonts.outfitTextTheme(
-          Theme.of(context).textTheme.apply(
+          ThemeData.dark().textTheme.apply(
                 bodyColor: AppColors.textSecondary,
                 displayColor: AppColors.textPrimary,
               ),

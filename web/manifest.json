@@ -1,11 +1,11 @@
 {
-    "name": "portfolio_web",
-    "short_name": "portfolio_web",
+    "name": "Ajith KP · Portfolio",
+    "short_name": "Ajith KP",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#060913",
+    "theme_color": "#060913",
+    "description": "Ajith KP — Senior Flutter & Mobile Engineer",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

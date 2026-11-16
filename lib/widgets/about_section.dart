@@ -1,124 +1,178 @@
 import 'package:flutter/material.dart';
-import 'package:animate_do/animate_do.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:responsive_builder/responsive_builder.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../constants/colors.dart';
 import '../constants/data.dart';
+import 'common/reveal.dart';
+import 'common/ui.dart';
 
 class AboutSection extends StatelessWidget {
   const AboutSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ResponsiveBuilder(
-      builder: (context, sizingInformation) {
-        return FadeInUp(
-          duration: const Duration(milliseconds: 1000),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    "About Me",
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: sizingInformation.isDesktop ? 32 : 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+    final desktop = context.isDesktop;
+
+    final story = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Reveal(
+          child: Text(
+            PortfolioData.bio,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 17,
+              height: 1.75,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Reveal(
+          delay: const Duration(milliseconds: 120),
+          child: Text(
+            PortfolioData.bio2,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 17,
+              height: 1.75,
+            ),
+          ),
+        ),
+        const SizedBox(height: 32),
+        Reveal(
+          delay: const Duration(milliseconds: 240),
+          child: HoverCard(
+            padding: const EdgeInsets.all(22),
+            glow: AppColors.violet,
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: AppColors.brandGradient,
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Container(
-                      height: 1,
-                      color: AppColors.surface,
-                    ),
+                  child: const FaIcon(FontAwesomeIcons.graduationCap,
+                      color: Colors.white, size: 22),
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        PortfolioData.education,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        PortfolioData.educationDetail,
+                        style: monoStyle(13, color: AppColors.textSecondary),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 40),
-              Wrap(
-                spacing: 40,
-                runSpacing: 40,
-                children: [
-                  SizedBox(
-                    width: sizingInformation.isDesktop ? 500 : double.infinity,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+
+    return ContentWidth(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(
+            eyebrow: 'About me',
+            title: 'Engineering mobile products\nthat scale.',
+          ),
+          desktop
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 5, child: story),
+                    const SizedBox(width: 56),
+                    const Expanded(flex: 6, child: _SkillGrid()),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [story, const SizedBox(height: 40), const _SkillGrid()],
+                ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkillGrid extends StatelessWidget {
+  const _SkillGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth > 520 ? 2 : 1;
+        final width = (constraints.maxWidth - 18 * (columns - 1)) / columns;
+        final groups = PortfolioData.skillGroups;
+        return Wrap(
+          spacing: 18,
+          runSpacing: 18,
+          children: [
+            for (var i = 0; i < groups.length; i++)
+              SizedBox(
+                width: width,
+                child: Reveal(
+                  delay: Duration(milliseconds: 80 * i),
+                  offset: Offset(i.isEven ? -30 : 30, 20),
+                  child: HoverCard(
+                    padding: const EdgeInsets.all(20),
+                    glow: i.isEven ? AppColors.primary : AppColors.secondary,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "I am an innovative Mobile Engineer dedicated to shipping world-class applications. By focusing on Clean Architecture algorithms, robust state management via BLoC, and seamless UI/UX design, I continuously strive to push the boundaries of mobile performance and cross-functional agile collaboration.",
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 18, height: 1.6),
+                        Row(
+                          children: [
+                            FaIcon(groups[i].icon,
+                                size: 16, color: AppColors.primary),
+                            const SizedBox(width: 10),
+                            Text(
+                              groups[i].title,
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        Text(
-                          "Here are a few technologies I've been working with recently:",
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 18),
-                        ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
                         Wrap(
-                          spacing: 20,
-                          runSpacing: 10,
-                          children: PortfolioData.skills.map((skill) {
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.arrow_right, color: AppColors.primary, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  skill,
-                                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
-                                ),
-                              ],
-                            );
-                          }).toList(),
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final item in groups[i].items)
+                              TagChip(
+                                item,
+                                color: i.isEven
+                                    ? AppColors.primary
+                                    : AppColors.violet,
+                              ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 40),
-              FadeInUp(
-                duration: const Duration(milliseconds: 1200),
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () async {
-                      final Uri uri = Uri.parse(PortfolioData.resumeAsset);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri);
-                      } else {
-                        await launchUrl(Uri.parse("assets/${PortfolioData.resumeAsset}"));
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.primary),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.download, color: AppColors.primary, size: 20),
-                          SizedBox(width: 10),
-                          Text(
-                            "Download CV",
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 16,
-                              fontFamily: 'FiraCode',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ),
               ),
-            ],
-          ),
+          ],
         );
       },
     );
